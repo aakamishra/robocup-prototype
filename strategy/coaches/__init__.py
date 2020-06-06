@@ -1,1 +1,1 @@
-from .coach import Coach
+from .coach import Coach  # noqa

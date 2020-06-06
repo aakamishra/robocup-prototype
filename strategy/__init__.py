@@ -1,2 +1,2 @@
 # pylint: disable=import-error
-from .strategy import Strategy
+from .strategy import Strategy  # noqa

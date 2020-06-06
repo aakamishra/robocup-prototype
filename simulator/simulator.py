@@ -105,7 +105,7 @@ class Simulator(Provider):
 
     def run(self):
         # allow user to move the ball via UI
-        if self._viz_events_handled < self.gs.viz_inputs['simulator_events_count']:
+        if self._viz_events_handled < self.gs.viz_inputs['simulator_events_count']:  # noqa
             self._viz_events_handled += 1
             if self.gs.viz_inputs['user_selected_ball']:
                 new_pos = self.gs.viz_inputs['user_click_position']
@@ -126,11 +126,6 @@ class Simulator(Provider):
         ball_pos = self.gs.get_ball_position()
         if ball_pos is not None:
             new_ball_pos = self.gs.predict_ball_pos(self.delta_time)
-            # self.logger.debug("pos: {}".format(ball_pos))
-            # self.logger.debug("dt: {}, new_pos: {}".format(self.delta_time, new_ball_pos))
-            # self.logger.debug("v: {}".format(self.gs.get_ball_velocity()))
-            # self.logger.debug("Predicted Ball Location: %s", self.gs.predict_ball_pos(0))
-            # self.logger.debug("Ball velocity: %s", self.gs.get_ball_velocity())
             self.gs.update_ball_position(new_ball_pos)
 
         for (team, robot_id), pos in \
@@ -184,7 +179,6 @@ class Simulator(Provider):
             # move robots according to commands
             pos = self.gs.get_robot_position(team, robot_id)
             new_pos = robot_commands.predict_pos(pos, self.delta_time)
-            # self.logger.debug(f"Current Position: {pos}; New Position: {new_pos}")
             self.gs.update_robot_position(
                 team, robot_id, new_pos
             )

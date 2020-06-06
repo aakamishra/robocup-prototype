@@ -2,12 +2,18 @@
 Setup + Troubleshooting:
 
 802.15.4 devices
-    Click Load default firmware settings in the Radio Configuration toolbar to load the default values for the device firmware.
-    Make sure API mode (API1 or API2) is enabled. To do so, set the AP parameter value to 1 (API mode without escapes) or 2 (API mode with escapes).
+    Click Load default firmware settings in the Radio Configuration toolbar to
+    load the default values for the device firmware. Make sure API mode
+    (API1 or API2) is enabled. To do so, set the AP parameter value to 1
+    (API mode without escapes) or 2 (API mode with escapes).
     Configure ID (PAN ID) setting to CAFE.
     Configure CH (Channel setting) to C.
-    Click Write radio settings in the Radio Configuration toolbar to apply the new values to the module.
-    Once you have configured both modules, check to make sure they can see each other. Click Discover radio modules in the same network, the second button of the device panel in the Radio Modules view. The other device must be listed in the Discovering remote devices dialog.
+    Click Write radio settings in the Radio Configuration toolbar to apply the
+    new values to the module.
+    Once you have configured both modules, check to make sure they can see
+    each other. Click Discover radio modules in the same network, the second
+    button of the device panel in the Radio Modules view. The other device
+    must be listed in the Discovering remote devices dialog.
 
 Troubleshooting:
     If you are getting the error

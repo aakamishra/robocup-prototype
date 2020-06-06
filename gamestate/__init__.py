@@ -1,2 +1,2 @@
 # pylint: disable=import-error
-from .gamestate import GameState
+from .gamestate import GameState  # noqa

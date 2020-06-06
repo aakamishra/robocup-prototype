@@ -1,1 +1,1 @@
-from .data_providers import SSLVisionDataProvider
+from .data_providers import SSLVisionDataProvider  # noqa

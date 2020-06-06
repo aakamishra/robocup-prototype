@@ -86,21 +86,27 @@ class Actions:
         If goal position is not legal or is blocked, goes somewhere nearby.
         """
         # If the goal is illegal or occupied, find somewhere nearby
-        if not self.gs.is_pos_legal(goal_pos, self._team, robot_id) \
-            or not self.gs.is_position_open(goal_pos, self._team, robot_id):
+        is_legal = self.gs.is_pos_legal(goal_pos, self._team, robot_id)
+        is_open = self.gs.is_position_open(goal_pos, self._team, robot_id)
+        if not is_legal or not is_open:
             goal_pos = self.find_legal_pos(robot_id, goal_pos)
+
         start_pos = self.gs.get_robot_position(self._team, robot_id)
+
         # always check if we can just go straight
-        if not self.is_path_blocked(start_pos, goal_pos, robot_id, buffer_dist=0, allow_illegal=allow_illegal):
+        if not self.is_path_blocked(start_pos, goal_pos, robot_id,
+                                    buffer_dist=0,
+                                    allow_illegal=allow_illegal):
             self.move_straight(robot_id, np.array(goal_pos))
-            self.logger.debug(f"Robot {robot_id} going straight from {start_pos} to {goal_pos}")
+            self.logger.debug("Robot %s going straight from %s to %s",
+                              robot_id, start_pos, goal_pos)
             return self.is_done_moving(robot_id)
+
         # now check if current waypoints are already going where we want
         current_goal = self.get_goal_pos(robot_id)
         SAME_GOAL_THRESHOLD = 100  # TODO
         is_same_goal = current_goal is not None and \
-            np.linalg.norm(goal_pos[:2] - current_goal[:2]) < SAME_GOAL_THRESHOLD
-            # np.array_equal(goal_pos[:2], current_goal[:2])
+            np.linalg.norm(goal_pos[:2] - current_goal[:2]) < SAME_GOAL_THRESHOLD  # noqa
         commands = self.gs.get_robot_commands(self._team, robot_id)
         current_waypoints = [start_pos] + commands.waypoints
         current_path_collides = False
@@ -109,15 +115,18 @@ class Actions:
             if self.is_path_blocked(wp, next_wp, robot_id,
                                     allow_illegal=allow_illegal):
                 current_path_collides = True
+
         # avoid rerunning too often so we don't crash the system
         # RRT_MIN_INTERVAL = .1
         # recently_called = robot_id in self._last_pathfind_times and \
-        #     time.time() - self._last_pathfind_times[robot_id] < RRT_MIN_INTERVAL
+        #  time.time() - self._last_pathfind_times[robot_id] < RRT_MIN_INTERVAL
         # only rerun for same goal if long time has elapsed or path collides
-        MIN_REFRESH_INTERVAL = 3  # mainly in case something very strange has happened
+        # mainly in case something very strange has happened
+        MIN_REFRESH_INTERVAL = 3
         need_refresh = robot_id not in self._last_pathfind_times or \
-            time.time() - self._last_pathfind_times[robot_id] > MIN_REFRESH_INTERVAL
-        self.logger.debug(f"Robot: {robot_id} Start: {start_pos} Goal: {goal_pos} Waypoints: {current_waypoints}")
+            time.time() - self._last_pathfind_times[robot_id] > MIN_REFRESH_INTERVAL  # noqa
+        self.logger.debug("Robot: %s Start: %s Goal: %s Waypoints: %s",
+                          robot_id, start_pos, goal_pos, current_waypoints)
         if (current_path_collides or not is_same_goal or need_refresh):
             self._last_pathfind_times[robot_id] = time.time()
             is_success = self.RRT_path_find(
@@ -130,45 +139,53 @@ class Actions:
     def path_find(self, robot_id: int,
                   goal_pos: Tuple[float, float, float],
                   allow_illegal: bool = False) -> bool:
-        """ Makes the robot to start moving to a destination using 
+        """ Makes the robot to start moving to a destination using
         a greedy approach"""
         # If the goal is illegal or occupied, find somewhere nearby
-        if not self.gs.is_pos_legal(goal_pos, self._team, robot_id) \
-            or not self.gs.is_position_open(goal_pos, self._team, robot_id):
+        is_legal = self.gs.is_pos_legal(goal_pos, self._team, robot_id)
+        is_open = self.gs.is_position_open(goal_pos, self._team, robot_id)
+        if not is_legal or not is_open:
             goal_pos = self.find_legal_pos(robot_id, goal_pos)
+
         start_pos = self.gs.get_robot_position(self._team, robot_id)
         # always check if we can just go straight
         if not self.is_path_blocked(start_pos, goal_pos, robot_id,
                                     buffer_dist=0,
                                     allow_illegal=allow_illegal):
             self.move_straight(robot_id, np.array(goal_pos))
-            # self.logger.debug(f"Robot {robot_id} going straight from {start_pos} to {goal_pos}")
             return self.is_done_moving(robot_id)
+
         # now check if current waypoints are already going where we want
         current_goal = self.get_goal_pos(robot_id)
         SAME_GOAL_THRESHOLD = 100  # TODO
         is_same_goal = current_goal is not None and \
-            np.linalg.norm(goal_pos[:2] - current_goal[:2]) < SAME_GOAL_THRESHOLD
-            # np.array_equal(goal_pos[:2], current_goal[:2])
+            np.linalg.norm(goal_pos[:2] - current_goal[:2]) < SAME_GOAL_THRESHOLD  # noqa
         commands = self.gs.get_robot_commands(self._team, robot_id)
         current_waypoints = [start_pos] + commands.waypoints
         # greedy approach only cares about first segment
-        fst_segmt = None if len(current_waypoints) < 2 else current_waypoints[:2]
+        fst_segmt = None if len(current_waypoints) < 2 else current_waypoints[:2]  # noqa
         fst_segmt_collides = False if fst_segmt is None \
-            else self.is_path_blocked(fst_segmt[0], fst_segmt[1], robot_id, allow_illegal=allow_illegal)
-        fst_segmt_len = 0 if fst_segmt is None else np.linalg.norm(fst_segmt[1][:2] - fst_segmt[0][:2])
+            else self.is_path_blocked(fst_segmt[0], fst_segmt[1], robot_id,
+                                      allow_illegal=allow_illegal)
 
-        TRIVIAL_DISTANCE = 3 * self.gs.ROBOT_RADIUS # distance where we should just let the robot go
-        MIN_REFRESH_INTERVAL = .1  # need frequent refreshes since we do not have full path planning
+        if fst_segmt is None:
+            fst_segmt_len = 0
+        else:
+            fst_segmt_len = np.linalg.norm(fst_segmt[1][:2] - fst_segmt[0][:2])
+
+        # distance where we should just let the robot go
+        TRIVIAL_DISTANCE = 3 * self.gs.ROBOT_RADIUS
+        # need frequent refreshes since we do not have full path planning
+        MIN_REFRESH_INTERVAL = .1
         need_refresh = robot_id not in self._last_pathfind_times or \
-            time.time() - self._last_pathfind_times[robot_id] > MIN_REFRESH_INTERVAL
-        # self.logger.debug(f"Robot: {robot_id} Start: {start_pos} Goal: {goal_pos} Waypoints: {current_waypoints}")
-        if (fst_segmt_collides or not is_same_goal or (need_refresh and not SAME_GOAL_THRESHOLD < fst_segmt_len < TRIVIAL_DISTANCE)):
+            time.time() - self._last_pathfind_times[robot_id] > MIN_REFRESH_INTERVAL  # noqa
+
+        if (fst_segmt_collides or not is_same_goal or \
+            (need_refresh and not SAME_GOAL_THRESHOLD < fst_segmt_len < TRIVIAL_DISTANCE)):  # noqa
             self._last_pathfind_times[robot_id] = time.time()
-            # is_success = self.RRT_path_find(start_pos, goal_pos, robot_id, allow_illegal=allow_illegal)
-            is_success = self.greedy_path_find(start_pos, goal_pos, robot_id, allow_illegal=allow_illegal)
+            is_success = self.greedy_path_find(start_pos, goal_pos, robot_id,
+                                               allow_illegal=allow_illegal)
             if not is_success:
-                # self.logger.debug(f"Robot {robot_id} greedy path find failed")
                 return False
 
         return self.is_done_moving(robot_id)

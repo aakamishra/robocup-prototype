@@ -1,1 +1,1 @@
-from .visualization import Visualizer
+from .visualization import Visualizer  # noqa

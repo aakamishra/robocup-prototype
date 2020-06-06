@@ -1,15 +1,12 @@
-import threading
 import time
 from coordinator import Provider
 
 try:
     from radio import Radio
     from robot_commands import RobotCommands
-    from robot_status import RobotStatus
 except (SystemError, ImportError):
     from .radio import Radio
     from .robot_commands import RobotCommands
-    from .robot_status import RobotStatus
 
 
 class Comms(Provider):

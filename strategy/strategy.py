@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # pylint: disable=import-error
 from coordinator import Provider
 
@@ -11,14 +12,14 @@ try:
     from routines import Routines
     from roles import Roles
     from plays import Plays
-    from coaches import *
+    from coaches import *  # noqa
 except (SystemError, ImportError, ModuleNotFoundError):
     from .utils import Utils
     from .actions import Actions
     from .routines import Routines
     from .roles import Roles
     from .analysis import Analysis
-    from .coaches import *
+    from .coaches import *  # noqa
     from .plays import Plays
 
 
@@ -90,15 +91,14 @@ class Strategy(Provider, Utils, Analysis, Actions, Routines, Roles, Plays):
             pass
         # Reset kicking commands after kick takes place and charge is zero
         # team_commands = self.gs.get_team_commands(self._team)
-        for robot_id, commands in self.gs.get_team_commands(self._team).items():
+        for robot_id, commands in self.gs.get_team_commands(self._team).items():  # noqa
             robot_status = self.gs.get_robot_status(self._team, robot_id)
             if robot_status.charge_level == 0:
                 commands.is_kicking = False
 
     # follow the user-input commands through visualizer
     def UI(self):
-        #self.logger.info("ball_position: {}".format(self.gs.get_ball_position()))
-        t = self.gs.get_ball_last_update_time()
+        _ = self.gs.get_ball_last_update_time()
 
         if self.gs.viz_inputs['user_selected_robot'] is not None:
             team, robot_id = self.gs.viz_inputs['user_selected_robot']
@@ -106,9 +106,9 @@ class Strategy(Provider, Utils, Analysis, Actions, Routines, Roles, Plays):
             if team == self._team:
                 commands = self.gs.get_robot_commands(self._team, robot_id)
                 # apply simple commands
-                commands.is_charging = self.gs.viz_inputs['user_charge_command']
-                commands.is_kicking = self.gs.viz_inputs['user_kick_command']
-                commands.is_dribbling = self.gs.viz_inputs['user_dribble_command']
+                commands.is_charging = self.gs.viz_inputs['user_charge_command']  # noqa
+                commands.is_kicking = self.gs.viz_inputs['user_kick_command']  # noqa
+                commands.is_dribbling = self.gs.viz_inputs['user_dribble_command']  # noqa
                 # set goal pos to click location on visualization window
                 if self.gs.viz_inputs['user_click_position'] is not None:
                     x, y = self.gs.viz_inputs['user_click_position']
@@ -120,12 +120,12 @@ class Strategy(Provider, Utils, Analysis, Actions, Routines, Roles, Plays):
                         w = None
                     goal_pos = np.array([x, y, w])
                     # Use pathfinding
-                    #self.move_straight(robot_id, goal_pos, is_urgent=True)
+                    # self.move_straight(robot_id, goal_pos, is_urgent=True)
                     # self.path_find(robot_id, goal_pos)
                     self.quick_path_find(robot_id, goal_pos)
                     # self.logger.info("UI CLICK!")
-                    #self.set_dribbler(robot_id, True)
-                    #self.pivot_with_ball(robot_id, goal_pos)
+                    # self.set_dribbler(robot_id, True)
+                    # self.pivot_with_ball(robot_id, goal_pos)
 
     def goalie_test(self):
         if self.gs.user_selected_robot is not None:
@@ -185,37 +185,40 @@ class Strategy(Provider, Utils, Analysis, Actions, Routines, Roles, Plays):
             # transition once robot 0 has ball (robot 1 can keep moving)
             if got_ball:
                 self.video_phase += 1
-                self.logger.info("Moving to video phase {}".format(self.video_phase))
+                self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 2:
             self.path_find(robot_id_1, reception_pos)
             # robot 0 makes the pass towards reception pos
-            kicked = self.prepare_and_kick(robot_id_0, reception_pos, pass_velocity)
+            kicked = self.prepare_and_kick(robot_id_0,
+                                           reception_pos,
+                                           pass_velocity)
             if kicked:
                 self.video_phase += 1
-                self.logger.info("Moving to video phase {}".format(self.video_phase))
+                self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 3:
             # robot 1 receives ball
             got_ball = self.get_ball(robot_id_1, charge_during=shoot_velocity)
             if got_ball:
                 self.video_phase += 1
-                self.logger.info("Moving to video phase {}".format(self.video_phase))
+                self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 4:
             # robot 1 moves to best kick pos to shoot
             goal = self.gs.get_attack_goal(self._team)
             center_of_goal = (goal[0] + goal[1]) / 2
-            shot = self.prepare_and_kick(robot_id_1, center_of_goal, shoot_velocity)
+            shot = self.prepare_and_kick(robot_id_1,
+                                         center_of_goal,
+                                         shoot_velocity)
             if shot:
                 self.video_phase += 1
-                self.logger.info("Moving to video phase {}".format(self.video_phase))
+                self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 5:
             self.set_dribbler(robot_id_1, False)
             self.kick_ball(robot_id_1)
             self.video_phase += 1
-            self.logger.info("Moving to video phase {}".format(self.video_phase))
+            self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 6:
-            # Set robot 1 to be goalie, have them go to the goal (see top of loop)
             self.video_phase += 1
-            self.logger.info("Moving to video phase {}".format(self.video_phase))
+            self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 7:
             if self.gs.get_ball_position()[0] > 3000:
                 return
@@ -223,29 +226,32 @@ class Strategy(Provider, Utils, Analysis, Actions, Routines, Roles, Plays):
             got_ball = self.get_ball(robot_id_0, charge_during=shoot_velocity)
             if got_ball:
                 self.video_phase += 1
-                self.logger.info("Moving to video phase {}".format(self.video_phase))
+                self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 8:
             # Robot 1 moves to best kick pos to shoot
             goal = self.gs.get_attack_goal(self._team)
             center_of_goal = (goal[0] + goal[1]) / 2
-            shot = self.prepare_and_kick(robot_id_0, center_of_goal, shoot_velocity)
+            shot = self.prepare_and_kick(robot_id_0,
+                                         center_of_goal,
+                                         shoot_velocity)
             if shot:
                 self.video_phase += 1
-                self.logger.info("Moving to video phase {}".format(self.video_phase))
+                self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 9:
             self.set_dribbler(robot_id_0, False)
             self.kick_ball(robot_id_0)
             # Loop back to placing the ball
             self.video_phase += 1
-            self.logger.info("Moving to video phase {}".format(self.video_phase))
+            self.logger.info("Moving to video phase %s", self.video_phase)
         elif self.video_phase == 10:
             if self.gs.get_ball_position()[0] > 3000:
                 self.video_phase = 7
-                self.logger.info("Moving back to video phase {}".format(self.video_phase))
+                self.logger.info("Moving back to video phase %s",
+                                 self.video_phase)
         else:
             pass
 
     def full_game(self):
         # pylint: disable=undefined-variable
-        coach = Coach(self)
+        coach = Coach(self)  # noqa
         coach.play()

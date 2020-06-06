@@ -1,6 +1,5 @@
 # pylint: disable=import-error
 from ..gamestate import GameState
-from ..gamestate_field import Field
 
 
 def test_defense_area():
